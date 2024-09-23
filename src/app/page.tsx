@@ -16,23 +16,34 @@ const Home: React.FC = () => {
       const y = event.clientY - rect.top;
 
       setMousePosition({ x, y });
-
-      // Оновлюємо відтінок на основі положення миші
-      const newHue = Math.floor((x / canvas.width) * 360); // Відтінок залежить від x-позиції
-      setHue(newHue);
+      updateCanvas(x, y);
     };
 
-    if (ctx) {
+    const handleTouchMove = (event: TouchEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const touch = event.touches[0]; // Використовуємо перший дотик
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      setMousePosition({ x, y });
+      updateCanvas(x, y);
+    };
+
+    const updateCanvas = (x: number, y: number) => {
+      // Оновлюємо відтінок на основі положення
+      const newHue = Math.floor((x / canvas.width) * 360);
+      setHue(newHue);
+
       // Очищаємо канвас
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Створюємо градієнт, що змінюється залежно від положення миші
+      // Створюємо градієнт
       const gradient = ctx.createRadialGradient(
-        mousePosition.x,
-        mousePosition.y,
+        x,
+        y,
         50,
-        mousePosition.x,
-        mousePosition.y,
+        x,
+        y,
         400
       );
       gradient.addColorStop(0, `hsl(${hue}, 100%, 50%)`);
@@ -41,18 +52,20 @@ const Home: React.FC = () => {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Малюємо білий квадрат, який рухається за мишею
+      // Малюємо квадрат
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.fillRect(mousePosition.x - 25, mousePosition.y - 25, 50, 50);
-    }
+      ctx.fillRect(x - 25, y - 25, 50, 50);
+    };
 
-    // Обробник події руху миші
+    // Обробники подій
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove);
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [mousePosition, hue]); // Викликаємо ефект при зміні положення миші або відтінку
+  }, [mousePosition, hue]);
 
   return (
     <div style={styles.container}>
